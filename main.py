@@ -136,89 +136,151 @@ EXTRA FEATURES:
 - high score system, and scoring system that encourages players to actually kill enemies 
 
 
-Code was almost all written by Yile with a small amount of help from luke
+Code was written by Yile
 Documentation and art was done by Luke 
 '''
-app = Ursina(debug=True)
+
+from ursina import *
+from random import randint
+
+app = Ursina()
+
+# set the application window to fullscreen mode
+window.fullscreen = True
+
+# enable the frames per second (fps) counter
+window.fps_counter.enabled = True
+
+# disable the entity counter
+window.entity_counter.enabled = False
+
+# disable the collider counter
+window.collider_counter.enabled = False
+
+# set the camera to orthographic mode
 camera.orthographic = True
+
+# set the field of view (fov) of the camera to 10
 camera.fov = 10
 
-
-# Define the Player object
+# create a player object at position (0, 0, 0)
 player = Player(position=(0, 0, 0))
-highScore = 0
-# Now that player is defined, you can assign it as the parent for the camera
-camera.parent = player
-highscoreText = Text(text="high score: "  + str(highScore), color=color.red, position=(-0.82, 0.35), scale=1)
 
-# Initialize the Enemy object
+# initialize the high score to 0
+highScore = 0
+
+# set the player as the parent for the camera
+camera.parent = player
+
+# display the high score text on the screen
+highscoreText = Text(text="high score: " + str(highScore), color=color.red, position=(-0.82, 0.35), scale=1)
+
+# set the initial attack cooldown to 0.5 seconds
 attackCD = 0.5
+
+# set the initial enemy spawn timer to 0
 enemy_spawn_timer = 0
 
-# Set the maximum number of enemies allowed at a time
-MAX_ENEMIES = 4
+# set the min number of enemies allowed at a time to 4
+MIN_ENEMIES = 4
 
+# create a background for the health bar
 health_bar_background = Entity(parent=camera.ui, model='quad', color=color.gray, scale=(0.22, 0.03), position=(-0.71, 0.45))
+
+# create the health bar
 health_bar = Entity(parent=camera.ui, model='quad', color=color.red, scale=(0.21, 0.02), position=(-0.71, 0.45))
 
+# function to update the health bar based on the player's health
 def update_health_bar():
+    # update the width of the health bar based on the player's health
     health_bar.scale_x = player.health / 100 * 0.21
+
+    # adjust the position of the health bar to align with the background
     health_bar.x = health_bar_background.x - (0.21 - health_bar.scale_x) / 2
 
-    
-#s
-# Initialize lists to store different types of enemies
+# initialize lists to store different types of enemies
 enemies = [[], []]
-kills_text = Text(text="score: "  + str(config.kills), color=color.red, position=(-0.82, 0.4), scale=1)
 
+# display the score text on the screen
+kills_text = Text(text="score: " + str(config.kills), color=color.red, position=(-0.82, 0.4), scale=1)
 
+# function to spawn enemies
 def spawn_enemy():
     for i in range(2):
+        # generate a random number between 0 and 100
         temp = randint(0, 100)
+
+        # if the random number is less than 50, spawn an enemy of type Enemy
         if temp < 50:
             enemies[0].append(Enemy(player=player, position=(randint(-50, 50), randint(-50, 50), 0)))
+
+        # if the random number is 50 or greater, spawn an enemy of type eye
         else:
             enemies[1].append(eye(player=player, position=(randint(-50, 50), randint(-50, 50), 0)))
 
-
-
+# function to count the current number of alive enemies
 def count_current_enemies():
+    # declare the global variable enemies
     global enemies
+
+    # initialize the current number of enemies to 1
     current_enemies = 1
+
+    # iterate over each sublist in the enemies list
     for sublist in enemies:
+        # iterate over each enemy in the sublist
         for enemy in sublist:
+            # if the enemy is alive, increment the current number of enemies by 1
             if enemy.alive:
                 current_enemies += 1
 
+    # return the current number of enemies
     return current_enemies
 
+# function to spawn lights on the ground
+def spawn_lights(squares):
+    for i in range(squares):
+        # create a light entity at a random position with a specified scale and texture
+        Entity(model='quad', position=(randint(-50, 50), randint(-50, 50), 0), scale=0.5, texture='assets/LightFlower')
+
+# main update function, called every frame
 def update():
+    #  global variables used in the function
     global attackCD, enemy_spawn_timer, kills_text, player, enemies, highScore, highscoreText
     
     try:
-        if(config.kills>highScore):
+        # if the current kills are greater than the high score, update the high score
+        if config.kills > highScore:
             highScore = config.kills
-        kills_text.text = "Kills: " + str(config.kills)
-        highscoreText.text = "High score: " + str(highScore)
 
+        # update the kills text and high score text on the screen
+        kills_text.text = "kills: " + str(config.kills)
+        highscoreText.text = "high score: " + str(highScore)
 
-        if(player.health<=0):
+        # handle player death
+        if player.health <= 0:
+            # set the player's alive status to False and reset their position
             player.alive = False
             player.position = (0, 0, 0)
-            config.kills = 0
-            
-            player.health = 100
-        # print("player is dead!")
-            death_text = Text(text="You Died", color=color.red, position=(-0.2, 0.1), scale=5)
 
+            # reset the kills count and player's health
+            config.kills = 0
+            player.health = 100
+
+            # display a "you died" message on the screen
+            death_text = Text(text="YOU DIED", color=color.red, position=(-0.2, 0.1), scale=5)
             invoke(destroy, death_text, 1)
+
+            # destroy all enemies
             for sublist in enemies:
                 for enemy in sublist:
                     invoke(destroy, enemy)
             enemies = [[], []]
 
-
+        # update the health bar
         update_health_bar()
+
+        # update the behavior of enemies in the first sublist
         for enemy in enemies[0]:
             if enemy.alive:
                 enemy.attackPlayer()
@@ -226,37 +288,44 @@ def update():
                 if enemy.intersects(player):
                     player.damage()
 
+        # update the behavior of enemies in the second sublist
         for enemy in enemies[1]:
             if enemy.alive:
                 enemy.attackPlayer()
                 enemy.updateAnimation()
                 if enemy.bullet and enemy.bullet.intersects(player):
                     player.damage()
+
+        # update the attack cooldown
         attackCD = max(0, attackCD - time.dt)
         player.update_animation()
-        
 
-        # Player attack logic
+        # handle player attacks
         if held_keys['left mouse'] and attackCD == 0:
             player.playerAttack()
             attackCD = 0.5
 
-
-        # Player movement and dash
+        # handle player movement and dash
         player.move()
         player.dash()
 
-        # Spawn new enemies if current count is less than maximum
-        if count_current_enemies() < MAX_ENEMIES:
+        # spawn new enemies if the current count is less than the min allowed
+        if count_current_enemies() < MIN_ENEMIES:
             for i in range(2):
                 spawn_enemy()
-        
 
     except Exception as e:
+        # print any exceptions that occur
         print(e)
 
-# Create a ground entity
+# create a ground entity and spawn lights
+spawn_lights(1000)
 Entity(model='quad', texture='assets/pyrplei1', scale=600, z=1, tag='ground')
 
-# Run the application
+# run the application
 app.run()
+
+
+
+
+
