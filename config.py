@@ -1,1 +1,1 @@
-kills = 0
+kills = 0 #amount of kills
