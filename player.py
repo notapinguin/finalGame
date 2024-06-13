@@ -67,7 +67,7 @@ class Player(Entity):
         # perform a raycast to detect collisions
         if shoot.hit and shoot.entity.tag == 'enemy' and shoot.hit is not None:
             shoot.entity.take_damage()  # apply damage to the enemy if hit
-            print("damaged an enemy!")
+            print("damaged an enemy!")(for debugging)
         
         invoke(destroy, bullet, delay=0.5)  # destroy the bullet after a delay
 
