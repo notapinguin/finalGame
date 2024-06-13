@@ -57,30 +57,7 @@ if time.time() - self.lastDamageTime >= self.damageCooldown:
     self.lastDamageTime = time.time()
     self.texture = 'assets/c1damage'
 
-    
-(from enemy class)
-if self.health <= 0:
-    invoke(destroy, self)
-    self.alive = False
-    print("killed an enemy")
-    config.kills += 1
-
-player_position = self.player.position
-direction = (player_position - self.position).normalized()
-distance = distance_2d(self, self.player)
-
-# Update dash cooldown timer
-self.dash_timer = max(0, self.dash_timer - time.dt)
-
-# If not dashing, move towards the player at normal speed
-if distance > 5:
-    self.position += direction * 10 * time.dt  # Move faster towards the player
-elif distance > 0.75:
-    self.position += direction * self.speed * time.dt
-elif distance <= 0.75 and self.dash_timer <= 0:  # Check if dash is off cooldown
-    self.animate_position(self.position + [2* p for p in direction], duration=0.2, curve=curve.linear)
-    self.dash_timer = self.dash_cooldown  # Start the dash cooldown timer
-
+if statements for allowing movement and some fragments of shooting logic (only instances of if statements were provided, check player code for full logic)
 
 CHANGING LIST:
 # Initialize lists to store different types of enemies
@@ -108,7 +85,7 @@ def update():
                 for enemy in sublist:
                     invoke(destroy, enemy)
             enemies = [[], []]
-
+enemies list is changed and is being added to/reset, also enemy or eye objects within the enemies list are altered as the player damages them (code is out of context, check actual code for full logic)
 
 
             
