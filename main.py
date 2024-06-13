@@ -314,9 +314,8 @@ def update():
             for i in range(2):
                 spawn_enemy()
 
-    except Exception as e:
-        # print any exceptions that occur
-        print(e)
+    except :
+        pass
 
 # create a ground entity and spawn lights
 spawn_lights(1000)
